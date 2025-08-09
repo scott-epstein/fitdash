@@ -1,0 +1,1762 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FitFuel — Workouts & Nutrition</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#5b7fff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+
+  <style>
+    :root { --brand: #5b7fff; --brand-2: #6fe1b2; --ink: #111; --muted:#6c757d; }
+    body { background: #0f1220; color: #e9eef8; }
+    .navbar { background: linear-gradient(90deg, var(--brand), var(--brand-2)); }
+    .card { background: #141935; border: 1px solid #2a2f55; }
+    .form-control, .form-select { background:#0c1030; color:#e9eef8; border:1px solid #2a2f55;}
+    .btn-brand { background: var(--brand); color:#fff; border: none; }
+    .btn-outline-brand { border:1px solid var(--brand); color:#e9eef8;}
+    .badge-soft { background:#1b2045; color:#9fb4ff; }
+    .accent { color:#9ad9c7; }
+    a, a:hover { color:#9fb4ff; }
+    .timer-display { font-variant-numeric: tabular-nums; font-size: 1.8rem; }
+    .sticky-footer{ position:sticky; bottom:0; background:#0f1220; border-top:1px solid #2a2f55; }
+    canvas { background: #0c1030; padding: 12px; border-radius: 12px; }
+    .chip { border:1px solid #2a2f55; padding: 4px 10px; border-radius: 999px; display:inline-block; margin: 2px; }
+  </style>
+
+<style>
+  .home-hero { display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; }
+  .ring { width:110px; height:110px; position:relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .ring .label .big { font-size:20px; font-weight:700; }
+  .ring .label .small { font-size:12px; opacity:.8; }
+  .hero-right { display:flex; gap:16px; align-items:center; }
+  .metric { min-width:160px; }
+  .metric .value { font-size:20px; font-weight:700; }
+  .streak { display:flex; gap:12px; }
+  .streak .tile { background:#0c1030; padding:10px 12px; border:1px solid #2a2f55; border-radius:10px; min-width:120px; }
+  .fabbar { position:sticky; top:64px; z-index:2; display:flex; gap:8px; flex-wrap:wrap; }
+  .fabbar .btn { border-radius:999px; }
+</style>
+
+
+<style>
+:root{
+  --bg:#0f1323;
+  --surface:#141a2e;
+  --card:#0c1030;
+  --text:#e8ecff;
+  --muted:#94a0c8;
+  --accent:#ffd146; /* Gymverse-y yellow */
+  --brand:#5b7fff;  /* secondary blue for charts */
+  --border:#26305a;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;}
+
+a{color:var(--brand);text-decoration:none}
+.container{max-width:980px;margin:0 auto;padding:16px 16px 88px 16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.card h5,.card h6{margin:0 0 6px 0}
+
+.chip{background:#0c1030;border:1px solid var(--border);border-radius:999px;padding:6px 10px;display:inline-block}
+.badge-soft{background:#0c1030;border:1px solid var(--border);color:var(--muted);padding:2px 8px;border-radius:999px}
+.btn{border-radius:12px;border:1px solid var(--border);padding:8px 12px;cursor:pointer;background:#0c1030;color:var(--text)}
+.btn:hover{filter:brightness(1.1)}
+.btn-brand{background:var(--accent);color:#121212;border:none}
+.btn-outline-brand{border-color:var(--accent);color:var(--accent);background:transparent}
+input,select,textarea{background:#0c1030;border:1px solid var(--border);border-radius:12px;color:var(--text);padding:10px;width:100%}
+
+.timer-display{font-weight:700;font-size:18px;letter-spacing:1px}
+
+.accent{color:var(--accent)}
+.text-secondary{color:var(--muted) !important}
+.border-secondary{border-color:var(--border) !important}
+.round{border-radius:16px}
+
+.section-title{font-size:20px;font-weight:700;margin-bottom:8px}
+
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;height:68px;
+  background:linear-gradient(180deg,#11162a,#0b0f20);
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;align-items:center;
+  z-index:100;
+}
+.tabbar button{
+  background:none;border:none;color:var(--muted);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.tabbar button.active{color:var(--accent)}
+.tabbar .icon{width:24px;height:24px;display:inline-block}
+
+.header-brand{
+  position:sticky;top:0;z-index:10;
+  background:linear-gradient(90deg, rgba(91,127,255,.18), rgba(70,255,206,.12));
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  backdrop-filter:saturate(140%) blur(12px);
+}
+.header-brand .title{font-weight:800;letter-spacing:.3px}
+
+.hero-ring{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.hero-ring .ring{width:100px;height:100px;position:relative}
+.hero-ring .ring svg{transform:rotate(-90deg)}
+.hero-ring .ring .label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.hero-ring .ring .big{font-size:18px;font-weight:800}
+.hero-ring .ring .small{font-size:11px;color:var(--muted)}
+
+.list{list-style:none;margin:0;padding:0}
+.list .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--border)}
+.list .row:last-child{border-bottom:none}
+
+.cta-bottom{position:sticky;bottom:74px;display:flex;justify-content:center;margin-top:8px}
+.cta-bottom .btn-brand{width:92%;height:48px;font-weight:800;letter-spacing:.3px}
+</style>
+
+
+<style>
+  .coach-card{display:flex; gap:14px; align-items:center;}
+  .coach-pill{min-width:70px; text-align:center; padding:10px; border-radius:12px; background:#0c1030; border:1px solid var(--border);}
+  .coach-score{font-size:24px; font-weight:800;}
+  .coach-msg{font-size:14px;}
+  .coach-kpis{display:flex; gap:12px; flex-wrap:wrap;}
+  .coach-kpis .kpi{background:#0c1030;border:1px solid var(--border);border-radius:12px;padding:6px 10px}
+  .readiness-green{color:#22e37b}
+  .readiness-yellow{color:#ffd146}
+  .readiness-red{color:#ff6b6b}
+  .fabbar{ position:sticky; bottom:72px; top:auto }
+</style>
+
+
+<style>
+  .ex-tile{display:flex; gap:10px; align-items:center;}
+  .ex-thumb{width:64px; height:64px; border-radius:10px; overflow:hidden; background:#0c1030; border:1px solid var(--border); flex: 0 0 64px;}
+  .ex-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .ex-actions{display:flex; gap:6px}
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; z-index:9999; align-items:center; justify-content:center; padding:16px;}
+  .lightbox-inner{width:100%; max-width:720px; background:#141a2e; border:1px solid var(--border); border-radius:12px; overflow:hidden}
+  .lightbox-header{display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid var(--border);}
+  .lightbox-body{position:relative; padding-top:56.25%;}
+  .lightbox-body iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
+  .swap-picker{border:1px solid var(--border); border-radius:12px; padding:8px; background:#0c1030; max-height:260px; overflow:auto}
+  .swap-row{display:flex; gap:8px; align-items:center; padding:6px; border-bottom:1px dashed var(--border)}
+  .swap-row:last-child{border-bottom:none}
+</style>
+
+</head>
+<body>
+
+<header class="header-brand">
+  <div class="title">FitFuel</div>
+</header>
+
+
+<div class="container pb-5">
+
+  <!-- COACH -->
+  <section id="section-coach" class="mb-4" style="display:none;">
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div class="card p-3">
+          <h5 class="mb-2">AI Coach</h5>
+          <div class="small text-secondary mb-2">Chat about training, recovery, and nutrition. Bring your own OpenAI API key in Settings.</div>
+          <div id="coach-log" style="height:380px; overflow:auto; background:#0c1030; border-radius:10px; padding:10px; border:1px solid #2a2f55;"></div>
+          <div class="d-flex gap-2 mt-2">
+            <input id="coach-input" class="form-control" placeholder="Ask me anything... (e.g., 'Plan a 4-day split for strength and size')">
+            <button class="btn btn-brand" id="coach-send">Send</button>
+          </div>
+          <div class="small text-secondary mt-1" id="coach-status"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card p-3">
+          <h6>Quick Prompts</h6>
+          <div class="d-flex flex-wrap gap-2">
+  <button class="btn btn-outline-brand btn-sm coach-prompt" data-p="Build a 4-day upper/lower split with sets x reps, RPE targets, warm-ups, and accessories.">4-day UL split</button>
+  <button class="btn btn-outline-brand btn-sm coach-prompt" data-p="Set protein, carbs, fat for 2100 kcal with high-protein focus (≥1g/lb).">Set my macros</button>
+  <button class="btn btn-outline-brand btn-sm coach-prompt" data-p="8-week progression for bench/squat/deadlift. Use %1RM or RPE. Deload week included.">Big 3 cycle</button>
+  <button class="btn btn-outline-brand btn-sm coach-prompt" data-p="Pre/post-workout nutrition timing for heavy leg day, with gram targets.">Fuel timing</button>
+  <button class="btn btn-outline-brand btn-sm coach-prompt" data-p="Generate an 8-week program JSON starting next Monday using my weekly plan and goals.">Generate program</button>
+</div>
+        
+      <div class="col-lg-4">
+        <div class="card p-3 mt-3">
+          <h6>Program Builder (8 weeks)</h6>
+          <div class="mb-2">
+            <label class="form-label">Start date (Monday works best)</label>
+            <input id="prog-start" type="date" class="form-control">
+          </div>
+          <div class="mb-2">
+  <label class="form-label">Adjustments (optional)</label>
+  <textarea id="prog-adjust" class="form-control" rows="2" placeholder="e.g., Emphasize glutes & hamstrings, swap bench for dumbbells, no barbell deadlifts, add 2 pickleball days."></textarea>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-2">
+  <button class="btn btn-outline-brand btn-sm" id="coach-gen-program">Generate 8-week Program</button>
+  <button class="btn btn-brand btn-sm" id="coach-apply-program" disabled>Apply Program</button>
+  <button class="btn btn-outline-brand btn-sm" id="coach-rebuild-apply" disabled>Rebuild & Reapply</button>
+</div>
+<div class="small text-secondary">Generate → preview → Apply. Or use **Rebuild & Reapply** to regenerate with adjustments and replace the last coach program in-place (dates preserved).</div>
+          <div id="coach-prog-preview" class="mt-2 small" style="max-height:220px; overflow:auto; border:1px solid #2a2f55; padding:8px; border-radius:8px; background:#0c1030;"></div>
+        </div>
+
+        <div class="card p-3 mt-3">
+          <h6>Bulk Tools</h6>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="form-label">From</label><input id="bulk-from" type="date" class="form-control"></div>
+            <div class="col-6"><label class="form-label">To</label><input id="bulk-to" type="date" class="form-control"></div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-brand btn-sm" id="bulk-clear-coach">Clear Coach Program</button>
+            <button class="btn btn-outline-brand btn-sm" id="bulk-clear-all">Clear All Workouts</button>
+          </div>
+          <hr>
+          <div class="row g-2 align-items-end">
+            <div class="col-5"><input id="bulk-find" class="form-control" placeholder="Find exercise"></div>
+            <div class="col-5"><input id="bulk-replace" class="form-control" placeholder="Replace with"></div>
+            <div class="col-2"><button class="btn btn-brand btn-sm w-100" id="bulk-replace-btn">Replace</button></div>
+          </div>
+          <div class="small text-secondary mt-1">Range-limited find & replace across scheduled workouts.</div>
+          <div class="small mt-1" id="bulk-status"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Settings Modal -->
+  <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background:#141935; border:1px solid #2a2f55;">
+        <div class="modal-header">
+          <h5 class="modal-title">Settings</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">OpenAI API Key</label>
+            <input id="openai-key" class="form-control" placeholder="sk-... (stored only in your browser)">
+            <div class="small text-secondary mt-1">Used for the AI Coach only. Your key stays in localStorage on this device.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Model</label>
+            <input id="openai-model" class="form-control" value="gpt-4o-mini">
+            <div class="small text-secondary">Any chat-capable model name your key supports (e.g., gpt-4o-mini).</div>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="timer-sound">
+            <label class="form-check-label" for="timer-sound">Rest timer sound</label>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-6"><label class="form-label">Warm-up % of last</label><input id="wu-percent" type="number" class="form-control" value="45"></div>
+            <div class="col-6"><label class="form-label">Warm-up reps</label><input id="wu-reps" type="number" class="form-control" value="12"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-brand" id="save-openai">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <section id="section-home" class="mb-4">
+<section id="section-exercises" class="mb-4" style="display:none;">
+  <div class="card p-3 mb-3">
+    <h5 class="mb-2">Browse Exercises</h5>
+    <div class="small text-secondary mb-2">Tap a muscle on the model or search by name. Filter by type.</div>
+    <div id="ex-model" class="mb-2" style="display:flex;justify-content:center;"></div>
+    <div class="d-flex gap-2 mb-2">
+      <input id="ex-search" class="form-control" placeholder="Search exercises...">
+      <select id="ex-type" class="form-select" style="max-width:180px">
+        <option value="">All</option>
+        <option value="Strength">Strength</option>
+        <option value="Cardio">Cardio</option>
+        <option value="Mobility">Mobility</option>
+        <option value="Yoga/Pilates">Yoga/Pilates</option>
+      </select>
+    </div>
+    <div id="ex-chips" class="mb-2">
+      <span class="chip">Chest</span> <span class="chip">Back</span> <span class="chip">Legs</span> <span class="chip">Glutes</span>
+      <span class="chip">Shoulders</span> <span class="chip">Biceps</span> <span class="chip">Triceps</span> <span class="chip">Core</span>
+    </div>
+  </div>
+  <div class="card p-3">
+    <div id="ex-list"></div>
+  </div>
+</section>
+
+    <div class="card p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="section-title">Coach — Today</div>
+          <div class="text-secondary small">Auto guidance for training & nutrition</div>
+        </div>
+        <button class="btn btn-outline-brand btn-sm" id="coach-details-btn">Details</button>
+      </div>
+      <div class="coach-card mt-2">
+        <div class="coach-pill">
+          <div class="small text-secondary">Readiness</div>
+          <div id="coach-score" class="coach-score">--</div>
+          <div id="coach-state" class="small">--</div>
+        </div>
+        <div>
+          <div id="coach-msg" class="coach-msg">Loading…</div>
+          <div class="coach-kpis mt-2">
+            <div class="kpi">Cals: <span id="coach-kcal" class="accent">0</span> / <span id="coach-kcal-goal">0</span></div>
+            <div class="kpi">Protein: <span id="coach-pro" class="accent">0</span>g / <span id="coach-pro-goal">0</span>g</div>
+            <div class="kpi">Training: <span id="coach-trn" class="accent">0</span> / <span id="coach-trn-goal">60</span> min</div>
+            <div class="kpi">Streaks — W:<span id="coach-streak-w">0</span> • F:<span id="coach-streak-f">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-3 mb-3">
+      <div class="home-hero">
+        <div class="d-flex gap-3 flex-wrap">
+          <div class="ring" id="ring-cal"></div>
+          <div class="ring" id="ring-pro"></div>
+          <div class="ring" id="ring-train"></div>
+        </div>
+        <div class="hero-right">
+          <div class="metric">
+            <div class="text-secondary small">Readiness (beta)</div>
+            <div class="value" id="ready-score">--</div>
+            <div class="small" id="ready-note"></div>
+          </div>
+          <div class="metric">
+            <div class="text-secondary small">Streaks</div>
+            <div class="streak">
+              <div class="tile"><div class="small text-secondary">Workout</div><div class="value" id="streak-workout">0</div></div>
+              <div class="tile"><div class="small text-secondary">Food Log</div><div class="value" id="streak-food">0</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fabbar mt-3">
+        <button class="btn btn-brand btn-sm" id="act-log-food">+ Log food</button>
+        <button class="btn btn-outline-brand btn-sm" id="act-start-workout">Start workout</button>
+        <button class="btn btn-outline-brand btn-sm" id="act-scan">Scan barcode</button>
+        <button class="btn btn-outline-brand btn-sm" id="act-coach">Ask Coach</button>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h5 class="mb-2">This Week</h5>
+          <div class="small text-secondary mb-2">Planned vs completed sessions, plus what you’ve finished.</div>
+          <div id="home-week-summary" class="mb-2"></div>
+          <div id="home-completed-list" class="small"></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+<div class="card p-3 mt-3">
+  <h5 class="mb-2">Today’s Workouts</h5>
+  <div id="today-workouts-list" class="list"></div>
+</div>
+
+        <div class="card p-3">
+          <h5 class="mb-2">Weight Training Focus</h5>
+          <div class="small text-secondary mb-2">Body parts planned (from template) vs completed.</div>
+          <div id="home-bodyparts" class="mb-2"></div>
+        </div>
+      </div>
+      
+      
+      <div class="col-lg-12">
+        <div class="card p-3">
+          <h5 class="mb-2">Muscle Heatmap (This Week)</h5>
+          <div class="small text-secondary mb-2">Color intensity reflects tonnage (weight × reps) per muscle group.</div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <button class="btn btn-outline-brand btn-sm" id="hm-prev">◀ Prev</button>
+            <div id="hm-range" class="small"></div>
+            <button class="btn btn-outline-brand btn-sm" id="hm-next">Next ▶</button>
+            <input type="date" id="hm-date" class="form-control form-control-sm" style="width:auto">
+          </div>
+
+          <div id="muscle-heatmap" style="display:flex; justify-content:center;"></div>
+        </div>
+      </div>
+
+      <div class="col-lg-12">
+        <div class="card p-3">
+          <h5 class="mb-2">Weekly Calendar</h5>
+          <div id="home-calendar" class="row g-2"></div>
+          <div class="small text-secondary mt-2">Tap a day to open scheduling for that date.</div>
+        </div>
+      </div>
+
+      
+      <div class="col-lg-12">
+        <div class="card p-3">
+          <h5 class="mb-2">Today — Quick Add</h5>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <div class="mb-2"><strong>Foods</strong> <span class="small text-secondary">(recent & favorites)</span></div>
+              <div id="home-quick-foods" class="d-flex flex-wrap gap-2"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-2"><strong>Workouts</strong></div>
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                <button class="btn btn-outline-brand btn-sm" id="home-copy-last-workout">Copy last workout → today</button>
+              </div>
+              <div class="mb-2"><strong>Stopwatch</strong></div>
+              <div class="d-flex align-items-center gap-2">
+                <div id="home-stopwatch" class="timer-display">00:00</div>
+                <button class="btn btn-outline-brand btn-sm" id="sw-start">Start</button>
+                <button class="btn btn-outline-brand btn-sm" id="sw-stop">Stop</button>
+                <button class="btn btn-outline-brand btn-sm" id="sw-reset">Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-12">
+        <div class="card p-3">
+          <h5 class="mb-2">Today’s Nutrition</h5>
+          <div id="home-nutrition"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section id="section-plan" class="mb-4">
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h5 class="mb-2">Weekly Plan</h5>
+          <p class="text-secondary small mb-3">Set how many days and the type of session.</p>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Weight lifting</label>
+              <input type="number" id="plan-lift" class="form-control" min="0" max="7" value="4">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Pilates/Yoga</label>
+              <input type="number" id="plan-mind" class="form-control" min="0" max="7" value="1">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Pickleball</label>
+              <input type="number" id="plan-pickle" class="form-control" min="0" max="7" value="2">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Bike/Run</label>
+              <input type="number" id="plan-enduro" class="form-control" min="0" max="7" value="2">
+            </div>
+          </div>
+          <div class="mt-3">
+            <button class="btn btn-brand" id="save-plan">Save Plan</button>
+            <span id="plan-status" class="ms-2 small text-success"></span>
+          </div>
+        </div>
+      </div>
+      
+        <div class="card p-3 mt-3">
+          <h5 class="mb-2">Auto Progression</h5>
+          <div class="row g-2 align-items-end">
+            <div class="col-4">
+              <label class="form-label">Enabled</label>
+              <select id="prog-enabled" class="form-select">
+                <option value="true" selected>On</option>
+                <option value="false">Off</option>
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="form-label">Increase (%)</label>
+              <input id="prog-percent" class="form-control" type="number" value="2.5" step="0.5">
+            </div>
+            <div class="col-4">
+              <label class="form-label">Round to</label>
+              <select id="prog-round" class="form-select">
+                <option value="2.5">2.5 lbs</option>
+                <option value="5">5 lbs</option>
+                <option value="1">1 kg</option>
+                <option value="2.5kg">2.5 kg</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-2">
+            <button class="btn btn-brand btn-sm" id="save-prog">Save Progression</button>
+            <span id="prog-status" class="small ms-2"></span>
+          </div>
+          <div class="small text-secondary mt-2">When you add sets on an exercise you've done before, we'll suggest the last top weight + the % increase, rounded to the increment above.</div>
+        </div>
+
+      <div class="col-lg-6">
+        <div class="card p-3 mt-3">
+          <h5 class="mb-2 d-flex justify-content-between align-items-center">Schedule a Workout <div class="d-flex gap-2"><button class="btn btn-outline-brand btn-sm" id="copy-last-week">Copy Last Week → Next</button><button class="btn btn-outline-brand btn-sm" id="copy-last-week-targets">Copy Last Week → Next (with targets)</button></div></h5>
+          <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label">Date</label>
+              <input type="date" id="sched-date" class="form-control">
+            </div>
+            <div class="col-md-7">
+              <label class="form-label">Source</label>
+              <select id="sched-source" class="form-select"></select>
+            </div>
+          </div>
+          <div class="mt-2 d-flex gap-2">
+            <button class="btn btn-brand btn-sm" id="schedule-workout">Schedule</button>
+            <span id="sched-status" class="small"></span>
+          </div>
+          <div class="small text-secondary mt-2" id="sched-help">Pick a date and choose a template or a past workout to copy to that day.</div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h5 class="mb-2">Split Templates</h5>
+          <div class="small text-secondary mb-2">Apply a template to your lifting week.</div>
+          <div>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="ULUL">Upper/Lower x2</button>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="PPL">Push / Pull / Legs (PPL)</button>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="PPLUL">PPLUL (5-Day)</button>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="PHUL">PHUL (Power Hypertrophy Upper Lower)</button>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="Powerbuilding">Powerbuilding (Upper S / Lower S / Push H / Pull H / Legs H)</button>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="AthleteHybrid">Athlete Hybrid (Lift + Conditioning)</button>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="FB">Full Body 3x</button>
+            <button class="btn btn-outline-brand btn-sm me-2 mb-2" data-template="Bro">Bro Split (Chest/Back/Legs/Shoulders+Arms)</button>
+          </div>
+          <div class="mt-3" id="template-output"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STRENGTH -->
+  <section id="section-lift" class="mb-4" style="display:none;">
+    <div class="card p-3 mb-3">
+      <h5 class="mb-2">Build Your Session</h5>
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label class="form-label">Muscle Group</label>
+          <select id="muscle-group" class="form-select">
+            <option value="">Choose…</option>
+            <option>Chest</option><option>Back</option><option>Legs</option>
+            <option>Glutes</option><option>Shoulders</option><option>Biceps</option>
+            <option>Triceps</option><option>Core</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Exercise</label>
+          <input id="exercise-search" class="form-control" placeholder="Type name to search…">
+          <div class="small text-secondary mt-1">Or pick from recommendations below.</div>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Superset</label>
+          <input id="superset-name" class="form-control" placeholder="Optional superset label (e.g., A1/A2)">
+        </div>
+      </div>
+      <div class="mt-3" id="exercise-recos"></div>
+    </div>
+
+    <div class="card p-3 mb-3">
+      <h6 class="mb-2">Selected Exercises</h6>
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        <button class="btn btn-outline-brand btn-sm" id="save-template">Save as Template</button>
+        <button class="btn btn-outline-brand btn-sm" id="load-template">Add from Template</button>
+        <button class="btn btn-outline-brand btn-sm" id="copy-previous">Copy Past Workout</button>
+      </div>
+      <div id="selected-exercises" class="mb-2"></div>
+      <button class="btn btn-brand btn-sm" id="start-workout">Save Workout</button>
+      <span id="workout-status" class="ms-2 small"></span>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div class="card p-3">
+          <h6 class="mb-2">Log Sets</h6>
+          <div id="set-logger"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card p-3">
+          <h6>Rest Timer</h6>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <select id="rest-select" class="form-select">
+              <option value="30">30 sec</option>
+              <option value="60" selected>60 sec</option>
+              <option value="90">90 sec</option>
+            </select>
+            <button class="btn btn-outline-brand" id="rest-start">Start</button>
+            <button class="btn btn-outline-brand" id="rest-stop">Stop</button>
+          </div>
+          <div class="timer-display" id="rest-display">00:00</div>
+        </div>
+        <div class="card p-3 mt-3">
+          <h6>Strength Progress (by Exercise)</h6>
+          <canvas id="exerciseChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARDIO/MIND -->
+  <section id="section-cardio" class="mb-4" style="display:none;">
+    <div class="card p-3 mb-3">
+      <h5>Log Cardio, Pilates, Yoga, Pickleball</h5>
+      <div class="row g-2">
+        <div class="col-md-3">
+          <select id="cardio-type" class="form-select">
+            <option>Run</option><option>Bike</option><option>Row</option>
+            <option>Pilates</option><option>Yoga</option><option>Pickleball</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <input id="cardio-duration" type="number" class="form-control" placeholder="Minutes">
+        </div>
+        <div class="col-md-3">
+          <input id="cardio-notes" class="form-control" placeholder="Notes (pace, HR, RPE)">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-brand w-100" id="save-cardio">Save</button>
+        </div>
+      </div>
+      <div class="small text-secondary mt-2" id="cardio-status"></div>
+    </div>
+    <div class="card p-3">
+      <h6>Endurance Trend</h6>
+      <canvas id="cardioChart" height="140"></canvas>
+    </div>
+  </section>
+
+  <!-- NUTRITION -->
+  <section id="section-nutrition" class="mb-4" style="display:none;">
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card p-3 mb-3">
+          <h5>Macro Goals</h5>
+          <div class="row g-2">
+            <div class="col-4"><label class="form-label">Protein (g)</label><input id="goal-protein" class="form-control" type="number" value="190"></div>
+            <div class="col-4"><label class="form-label">Carbs (g)</label><input id="goal-carbs" class="form-control" type="number" value="200"></div>
+            <div class="col-4"><label class="form-label">Fat (g)</label><input id="goal-fat" class="form-control" type="number" value="70"></div>
+          </div>
+          <div class="mt-2">
+            <button class="btn btn-brand btn-sm" id="save-goals">Save Goals</button>
+            <span id="goal-status" class="small ms-2"></span>
+          </div>
+        </div>
+
+        <div class="card p-3">
+          <h6>Add Food</h6>
+          <div class="row g-2 mb-2">
+            <div class="col-sm-6"><input id="food-search" class="form-control" placeholder="Search food (database)…"></div>
+            <div class="col-sm-3"><input id="food-qty" class="form-control" type="number" placeholder="Qty" value="1"></div>
+            <div class="col-sm-3">
+              <select id="food-unit" class="form-select">
+                <option>serving</option>
+                <option>g</option>
+                <option>oz</option>
+              </select>
+            </div>
+          </div>
+          <div id="food-results" class="mb-2"></div>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            <button class="btn btn-outline-brand btn-sm" id="open-scanner">Scan Barcode</button>
+            <div class="small text-secondary">Powered by Open Food Facts</div>
+          </div>
+          <video id="preview" style="width:100%; max-height:220px; display:none; margin-top:8px; border:1px solid #2a2f55; border-radius:10px;"></video>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card p-3 mb-3">
+          <h6>Today's Intake</h6>
+          <div id="today-foods"></div>
+        </div>
+        <div class="card p-3">
+          <h6>Macro Progress</h6>
+          <canvas id="macroChart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARDS -->
+  <section id="section-dash" class="mb-4" style="display:none;">
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h5 class="mb-2">Strength Dashboard</h5>
+          <div class="small text-secondary mb-2">Weight lifted over time by muscle group.</div>
+          <canvas id="groupChart" height="240"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card p-3 mt-3">
+          <h5 class="mb-2 d-flex justify-content-between align-items-center">Schedule a Workout <div class="d-flex gap-2"><button class="btn btn-outline-brand btn-sm" id="copy-last-week">Copy Last Week → Next</button><button class="btn btn-outline-brand btn-sm" id="copy-last-week-targets">Copy Last Week → Next (with targets)</button></div></h5>
+          <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label">Date</label>
+              <input type="date" id="sched-date" class="form-control">
+            </div>
+            <div class="col-md-7">
+              <label class="form-label">Source</label>
+              <select id="sched-source" class="form-select"></select>
+            </div>
+          </div>
+          <div class="mt-2 d-flex gap-2">
+            <button class="btn btn-brand btn-sm" id="schedule-workout">Schedule</button>
+            <span id="sched-status" class="small"></span>
+          </div>
+          <div class="small text-secondary mt-2" id="sched-help">Pick a date and choose a template or a past workout to copy to that day.</div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h5 class="mb-2">Nutrition Dashboard</h5>
+          <div class="small text-secondary mb-2">Calories & macros across days.</div>
+          <canvas id="calChart" height="240"></canvas>
+        </div>
+      </div>
+    </div>
+  
+  <div class="row g-3 mt-3">
+    <div class="col-lg-12">
+      <div class="card p-3">
+        <h5 class="mb-2">Backup & Transfer</h5>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-outline-brand btn-sm" id="export-json">Export JSON</button>
+          <button class="btn btn-outline-brand btn-sm" id="export-workouts-csv">Export Workouts CSV</button>
+          <button class="btn btn-outline-brand btn-sm" id="export-foods-csv">Export Foods CSV</button>
+<button class="btn btn-outline-brand btn-sm" id="export-coach-json">Export Coach Program JSON</button>
+<button class="btn btn-outline-brand btn-sm" id="export-coach-schedule-csv">Export Coach Schedule CSV</button>
+          <label class="btn btn-outline-brand btn-sm mb-0">
+            Import JSON <input type="file" id="import-json" accept="application/json" hidden>
+          </label>
+          <span id="backup-status" class="small ms-2"></span>
+        </div>
+        <div class="small text-secondary mt-2">Export your data to move to another device or back it up. Import replaces your current data.</div>
+      </div>
+    </div>
+  </div>
+  </section>
+</div>
+
+<footer class="sticky-footer py-2">
+  <div class="container d-flex justify-content-between small">
+    <div>Top strength coach & dietitian mode 🏋️‍♂️🥗</div>
+    <div id="save-indicator" class="text-secondary">All changes auto-saved</div>
+  </div>
+</footer>
+
+<script>
+const DB = {
+  get key() { return 'fitfuel-v1'; },
+  load() { try { return JSON.parse(localStorage.getItem(this.key)) || {}; } catch(e){ return {}; } },
+  save(data) { localStorage.setItem(this.key, JSON.stringify(data)); }
+};
+let state = Object.assign({
+  settings: { units: 'lbs', progression: { enabled: true, percent: 2.5, round: 2.5 }, timerSound: true },
+  plan: { lift:4, mind:1, pickle:2, enduro:2, templateDays: [] },
+  workouts: [],
+  cardio: [],
+  goals: { protein:190, carbs:200, fat:70 },
+  foodsByDate: {},
+  templates: [],
+  coachProgram: null,
+  coachProgramId: 0,
+  media: {
+    // Minimal media seed; add more as needed
+    'Barbell Bench Press': {yt:'eozdVDA78K0'},
+    'Back Squat': {yt:'ultWZbUMPL8'},
+    'Deadlift': {yt:'op9kVnSso6Q'},
+    'Overhead Press': {yt:'2yjwXTZQDDI'},
+    'Bent-Over Row': {yt:'kBWAon7ItDw'},
+    'Pull-Up': {yt:'eGo4IYlbE5g'},
+    'Romanian Deadlift': {yt:'JCXUYuzwNrM'},
+    'Hip Thrust': {yt:'LM8XHLYJoYs'},
+    'Dumbbell Bench Press': {yt:'VmB1G1K7v94'}
+  },
+  prefs: {
+    warmup: { percent: 45, reps: 12 }, // default warm-up: 45% x 12
+    swaps: {} // map originalName -> preferredReplacement
+  },
+  favoriteFoods: [],
+}, DB.load());
+function persist(){ DB.save(state); document.getElementById('save-indicator').innerText = 'Saved ' + new Date().toLocaleTimeString(); }
+
+document.querySelectorAll('.nav-link').forEach(a=>{
+  a.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const sec = a.dataset.section;
+    document.querySelectorAll('section[id^=section-]').forEach(s => s.style.display = 'none');
+    document.getElementById('section-'+sec).style.display = '';
+    document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));
+    a.classList.add('active');
+    if(sec==='dash'){ renderDashboards(); }
+  });
+});
+
+const unitsSel = document.getElementById('units');
+unitsSel.value = state.settings.units || 'lbs';
+unitsSel.addEventListener('change', ()=>{ state.settings.units = unitsSel.value; persist(); });
+
+const planFields = {
+  lift: document.getElementById('plan-lift'),
+  mind: document.getElementById('plan-mind'),
+  pickle: document.getElementById('plan-pickle'),
+  enduro: document.getElementById('plan-enduro')
+};
+Object.entries(planFields).forEach(([k, el]) => el.value = state.plan[k]);
+document.getElementById('save-plan').addEventListener('click', ()=>{
+  Object.entries(planFields).forEach(([k, el]) => state.plan[k] = Number(el.value||0));
+  document.getElementById('plan-status').innerText = 'Saved!';
+  setTimeout(()=>document.getElementById('plan-status').innerText='',1500);
+  persist();
+});
+
+const templates = {
+  ULUL: ['Upper','Lower','Rest','Upper','Lower','Pickleball/Bike','Rest'],
+  PPL: ['Push','Pull','Legs','Rest','Push','Pull','Legs'],
+  PPLUL: ['Push','Pull','Legs','Upper','Lower','Rest','Pickleball/Run'],
+  PHUL: ['Upper Strength','Lower Strength','Rest','Upper Hypertrophy','Lower Hypertrophy','Bike/Run','Rest'],
+  Powerbuilding: ['Upper Strength','Lower Strength','Push Hypertrophy','Pull Hypertrophy','Legs Hypertrophy','Pickleball/Conditioning','Rest'],
+  AthleteHybrid: ['Full Body + Sprints','Mobility/Pilates','Upper + Intervals','Pickleball','Lower + Tempo Run','Yoga','Rest'],
+  FB: ['Full Body','Rest','Full Body','Pickleball/Run','Rest','Full Body','Rest'],
+  Bro: ['Chest','Back','Legs','Shoulders+Arms','Rest','Pickleball/Run','Rest']
+};
+document.querySelectorAll('[data-template]').forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    const t = btn.dataset.template;
+    state.plan.templateDays = templates[t];
+    const out = state.plan.templateDays.map((d,i)=>`<span class="chip">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i]}: ${d}</span>`).join('');
+    document.getElementById('template-output').innerHTML = out;
+    persist();
+  });
+});
+if(state.plan.templateDays?.length){
+  const out = state.plan.templateDays.map((d,i)=>`<span class="chip">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i]}: ${d}</span>`).join('');
+  document.getElementById('template-output').innerHTML = out;
+}
+
+const exercisesDB = [
+  {name:'Barbell Bench Press', group:'Chest'}, {name:'Dumbbell Bench Press', group:'Chest'},
+  {name:'Incline Bench Press', group:'Chest'}, {name:'Dumbbell Flye', group:'Chest'},
+  {name:'Cable Crossover', group:'Chest'}, {name:'Push-Up', group:'Chest'},
+  {name:'Conventional Deadlift', group:'Back'}, {name:'Romanian Deadlift', group:'Back'},
+  {name:'Bent-Over Row', group:'Back'}, {name:'Lat Pulldown', group:'Back'},
+  {name:'Seated Cable Row', group:'Back'}, {name:'Pull-Up', group:'Back'},
+  {name:'Back Squat', group:'Legs'}, {name:'Front Squat', group:'Legs'},
+  {name:'Leg Press', group:'Legs'}, {name:'Walking Lunge', group:'Legs'},
+  {name:'Leg Extension', group:'Legs'}, {name:'Leg Curl', group:'Legs'},
+  {name:'Hip Thrust', group:'Glutes'}, {name:'Glute Bridge', group:'Glutes'},
+  {name:'Bulgarian Split Squat', group:'Glutes'}, {name:'Cable Kickback', group:'Glutes'},
+  {name:'Overhead Press', group:'Shoulders'},{name:'Dumbbell Shoulder Press', group:'Shoulders'},
+  {name:'Lateral Raise', group:'Shoulders'}, {name:'Rear Delt Flye', group:'Shoulders'},
+  {name:'Barbell Curl', group:'Biceps'}, {name:'Incline DB Curl', group:'Biceps'},
+  {name:'Triceps Pushdown', group:'Triceps'}, {name:'Skullcrusher', group:'Triceps'},
+  {name:'Hanging Leg Raise', group:'Core'}, {name:'Cable Crunch', group:'Core'}, {name:'Pallof Press', group:'Core'}
+];
+const recosEl = document.getElementById('exercise-recos');
+const searchEl = document.getElementById('exercise-search');
+const groupSel = document.getElementById('muscle-group');
+const selectedEl = document.getElementById('selected-exercises');
+const setLogger = document.getElementById('set-logger');
+
+function renderRecos(){
+  const g = groupSel.value;
+  const filtered = g ? exercisesDB.filter(e=>e.group===g) : exercisesDB;
+  recosEl.innerHTML = filtered.slice(0,12).map(e=>`<button class="btn btn-outline-brand btn-sm me-2 mb-2" data-add="${e.name}" data-group="${e.group}">${e.name}</button>`).join('');
+  recosEl.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addExercise(b.dataset.add, b.dataset.group)));
+}
+groupSel.addEventListener('change', renderRecos);
+renderRecos();
+
+searchEl.addEventListener('input', ()=>{
+  const q = searchEl.value.toLowerCase();
+  const res = exercisesDB.filter(e=>e.name.toLowerCase().includes(q)).slice(0,10);
+  recosEl.innerHTML = res.map(e=>`<button class="btn btn-outline-brand btn-sm me-2 mb-2" data-add="${e.name}" data-group="${e.group}">${e.name}</button>`).join('');
+  recosEl.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addExercise(b.dataset.add, b.dataset.group)));
+});
+
+let currentSession = { date: new Date().toISOString(), exercises: [] };
+
+function addExercise(name, group){
+  const superset = document.getElementById('superset-name').value.trim();
+  currentSession.exercises.push({ name, group, superset, sets: [] });
+  renderSelected();
+}
+function removeExercise(idx){ currentSession.exercises.splice(idx,1); renderSelected(); }
+function renderSelected(){
+  selectedEl.innerHTML = currentSession.exercises.map((ex, i)=>`
+    <div class="chip">${ex.name} <span class="text-secondary">(${ex.group}${ex.superset? ', ' + ex.superset:''})</span>
+      <button class="btn btn-sm btn-link text-danger" onclick="removeExercise(${i})">✕</button></div>`).join('');
+  renderSetLogger();
+}
+function renderSetLogger(){
+  setLogger.innerHTML = currentSession.exercises.map((ex,i)=>{
+    const hist = getExerciseHistory(ex.name);
+    const histHtml = hist.length ? (`<div class="small text-secondary mt-2">Recent: ` + hist.map(h=>`${h.date} [${h.sets.join(', ')}]`).join(' • ') + `</div>`) : '';
+    return `<div class="mb-3 p-2 rounded" style="border:1px dashed #2a2f55;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div><strong>${ex.name}</strong> <span class="badge badge-soft">${ex.group}</span> ${ex.superset?'<span class="badge badge-soft">Superset: '+ex.superset+'</span>':''}</div>
+        <button class="btn btn-outline-brand btn-sm" onclick="addSet(${i})">+ Set</button>
+      </div>
+      <div id="sets-${i}">${ex.sets.map((s,si)=>setRow(i,si,s)).join('')}</div>
+      ${histHtml}
+    </div>`;
+  }).join('');
+  currentSession.exercises.forEach((ex,i)=>refreshSets(i));
+}
+function setRow(exIdx, setIdx, s){
+  return `<div class="row g-2 align-items-center mb-2">
+    <div class="col-3"><input class="form-control" value="${s.weight||''}" placeholder="Weight (${state.settings.units})" oninput="updateSet(${exIdx},${setIdx},'weight',this.value)"></div>
+    <div class="col-2"><input class="form-control" value="${s.reps||''}" placeholder="Reps" oninput="updateSet(${exIdx},${setIdx},'reps',this.value)"></div>
+    <div class="col-3"><input class="form-control" value="${s.note||''}" placeholder="Note" oninput="updateSet(${exIdx},${setIdx},'note',this.value)"></div>
+    <div class="col-3">
+      <div class="d-flex align-items-center gap-1 flex-wrap">
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-outline-brand" onclick="startSetTimer(${exIdx},${setIdx},30)">30s</button>
+          <button class="btn btn-outline-brand" onclick="startSetTimer(${exIdx},${setIdx},60)">60s</button>
+          <button class="btn btn-outline-brand" onclick="startSetTimer(${exIdx},${setIdx},90)">90s</button>
+        </div>
+        <div id="timer-${exIdx}-${setIdx}" class="small" style="min-width:52px; text-align:center;">--:--</div>
+        <button class="btn btn-outline-brand btn-sm" onclick="stopSetTimer()">Stop</button>
+      </div>
+    </div>
+    <div class="col-1 text-end"><button class="btn btn-sm btn-link text-danger" onclick="deleteSet(${exIdx},${setIdx})">✕</button></div>
+  </div>`;
+}
+function refreshSets(i){ document.getElementById('sets-'+i).innerHTML = currentSession.exercises[i].sets.map((s,si)=>setRow(i,si,s)).join(''); }
+function addSet(i){
+  const ex = currentSession.exercises[i];
+  let suggested = suggestWeight(ex.name);
+  const recent = getExerciseHistory(ex.name);
+  let reps = '';
+  if(recent.length){
+    // pick last set's reps as starting point
+    const last = recent[0].sets.slice(-1)[0];
+    if(last && last.includes('x')){ reps = last.split('x')[1]; }
+  }
+  currentSession.exercises[i].sets.push({ weight: (suggested??''), reps: reps, note:'' });
+  refreshSets(i);
+}
+function deleteSet(i, si){ currentSession.exercises[i].sets.splice(si,1); refreshSets(i); }
+function updateSet(i, si, key, val){ currentSession.exercises[i].sets[si][key]=val; }
+
+document.getElementById('start-workout').addEventListener('click', ()=>{
+  if(!currentSession.exercises.length){ document.getElementById('workout-status').innerText='Add at least one exercise.'; return; }
+  state.workouts.push(JSON.parse(JSON.stringify(currentSession)));
+  currentSession = { date: new Date().toISOString(), exercises: [] };
+  renderSelected();
+  document.getElementById('workout-status').innerText='Workout saved!';
+  setTimeout(()=>document.getElementById('workout-status').innerText='',1500);
+  persist();
+  updateExerciseChart();
+  renderDashboards();
+});
+
+let timerInt = null, remaining = 0;
+function formatTime(s){ const m = Math.floor(s/60).toString().padStart(2,'0'); const sec = (s%60).toString().padStart(2,'0'); return `${m}:${sec}`; }
+document.getElementById('rest-start').addEventListener('click', ()=>{
+  remaining = Number(document.getElementById('rest-select').value);
+  document.getElementById('rest-display').innerText = formatTime(remaining);
+  if(timerInt) clearInterval(timerInt);
+  timerInt = setInterval(()=>{
+    remaining--; document.getElementById('rest-display').innerText = formatTime(Math.max(remaining,0));
+    if(remaining<=0){ clearInterval(timerInt); timerInt=null; }
+  }, 1000);
+});
+document.getElementById('rest-stop').addEventListener('click', ()=>{ if(timerInt) clearInterval(timerInt); timerInt=null; document.getElementById('rest-display').innerText='00:00'; });
+
+let exerciseChart = null;
+function updateExerciseChart(){
+  const ctx = document.getElementById('exerciseChart');
+  const data = [];
+  state.workouts.forEach(w=>{
+    w.exercises.forEach(ex=>{
+      const total = ex.sets.reduce((acc,s)=> acc + (Number(s.weight)||0) * (Number(s.reps)||0), 0);
+      data.push({ x: new Date(w.date), y: total, name: ex.name });
+    });
+  });
+  const byName = {};
+  data.forEach(d=>{
+    byName[d.name] = byName[d.name] || [];
+    byName[d.name].push({x:d.x, y:d.y});
+  });
+  const datasets = Object.entries(byName).map(([name, pts])=>({ label: name, data: pts, tension: .2 }));
+  if(exerciseChart) exerciseChart.destroy();
+  exerciseChart = new Chart(ctx, { type:'line', data:{ datasets }, options:{ scales:{ x:{ type:'time' }, y:{ beginAtZero:true } } } });
+}
+
+document.getElementById('save-cardio').addEventListener('click', ()=>{
+  const type = document.getElementById('cardio-type').value;
+  const duration = Number(document.getElementById('cardio-duration').value||0);
+  const notes = document.getElementById('cardio-notes').value;
+  if(!duration){ document.getElementById('cardio-status').innerText = 'Enter duration.'; return; }
+  state.cardio.push({ date: new Date().toISOString(), type, duration, notes });
+  document.getElementById('cardio-status').innerText = 'Saved!';
+  setTimeout(()=>document.getElementById('cardio-status').innerText='',1500);
+  document.getElementById('cardio-duration').value=''; document.getElementById('cardio-notes').value='';
+  persist();
+  renderCardioChart();
+  renderDashboards();
+});
+
+let cardioChart = null;
+function renderCardioChart(){
+  const byDate = {};
+  state.cardio.forEach(c=>{
+    const d = new Date(c.date).toISOString().slice(0,10);
+    byDate[d] = (byDate[d]||0) + c.duration;
+  });
+  const labels = Object.keys(byDate).sort();
+  const data = labels.map(k=>byDate[k]);
+  const ctx = document.getElementById('cardioChart');
+  if(cardioChart) cardioChart.destroy();
+  cardioChart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Minutes', data }] }, options:{ scales:{ y:{ beginAtZero:true }}}});
+}
+
+document.getElementById('goal-protein').value = state.goals.protein;
+document.getElementById('goal-carbs').value = state.goals.carbs;
+document.getElementById('goal-fat').value = state.goals.fat;
+document.getElementById('save-goals').addEventListener('click', ()=>{
+  state.goals = {
+    protein: Number(document.getElementById('goal-protein').value||0),
+    carbs: Number(document.getElementById('goal-carbs').value||0),
+    fat: Number(document.getElementById('goal-fat').value||0),
+  };
+  document.getElementById('goal-status').innerText = 'Goals saved!';
+  setTimeout(()=>document.getElementById('goal-status').innerText='',1500);
+  persist(); renderMacro();
+});
+
+// Expanded food DB (~100 items)
+const foodDB = [
+  {name:'Chicken Breast, cooked (100g)', unit:'g', gramsPerUnit:100, kcal:165, protein:31, carbs:0, fat:3.6},
+  {name:'Turkey Breast, cooked (100g)', unit:'g', gramsPerUnit:100, kcal:135, protein:29, carbs:0, fat:1.5},
+  {name:'Lean Ground Beef 90/10 (100g)', unit:'g', gramsPerUnit:100, kcal:176, protein:26, carbs:0, fat:8},
+  {name:'Sirloin Steak, grilled (100g)', unit:'g', gramsPerUnit:100, kcal:214, protein:26, carbs:0, fat:12},
+  {name:'Pork Tenderloin, roasted (100g)', unit:'g', gramsPerUnit:100, kcal:143, protein:26, carbs:0, fat:4},
+  {name:'Salmon, Atlantic farmed (100g)', unit:'g', gramsPerUnit:100, kcal:208, protein:20, carbs:0, fat:13},
+  {name:'Tuna, canned in water (100g)', unit:'g', gramsPerUnit:100, kcal:116, protein:26, carbs:0, fat:0.8},
+  {name:'Shrimp, cooked (100g)', unit:'g', gramsPerUnit:100, kcal:99, protein:24, carbs:0.2, fat:0.3},
+  {name:'Egg, large (50g)', unit:'g', gramsPerUnit:50, kcal:72, protein:6.3, carbs:0.4, fat:4.8},
+  {name:'Egg Whites (100g)', unit:'g', gramsPerUnit:100, kcal:52, protein:11, carbs:0.7, fat:0.2},
+  {name:'Greek Yogurt, nonfat (170g)', unit:'g', gramsPerUnit:170, kcal:100, protein:17, carbs:6, fat:0},
+  {name:'Cottage Cheese, low-fat (100g)', unit:'g', gramsPerUnit:100, kcal:82, protein:11.1, carbs:3.4, fat:2.3},
+  {name:'Tofu, firm (100g)', unit:'g', gramsPerUnit:100, kcal:76, protein:8, carbs:1.9, fat:4.8},
+  {name:'Tempeh (100g)', unit:'g', gramsPerUnit:100, kcal:192, protein:20, carbs:7.6, fat:10.8},
+  {name:'Seitan (100g)', unit:'g', gramsPerUnit:100, kcal:143, protein:25, carbs:8, fat:2.3},
+  {name:'Whey Protein (1 scoop/30g)', unit:'serving', gramsPerUnit:30, kcal:120, protein:24, carbs:3, fat:2},
+  {name:'Casein Protein (1 scoop/30g)', unit:'serving', gramsPerUnit:30, kcal:110, protein:24, carbs:2, fat:1},
+  {name:'Protein Bar (per bar 60g)', unit:'serving', gramsPerUnit:60, kcal:220, protein:20, carbs:25, fat:7},
+  {name:'White Rice, cooked (1 cup/158g)', unit:'serving', gramsPerUnit:158, kcal:205, protein:4.3, carbs:44.5, fat:0.4},
+  {name:'Brown Rice, cooked (1 cup/195g)', unit:'serving', gramsPerUnit:195, kcal:216, protein:5, carbs:45, fat:1.8},
+  {name:'Quinoa, cooked (185g)', unit:'serving', gramsPerUnit:185, kcal:222, protein:8.1, carbs:39.4, fat:3.6},
+  {name:'Oats, dry (40g)', unit:'g', gramsPerUnit:40, kcal:154, protein:5.4, carbs:27, fat:2.6},
+  {name:'Whole Wheat Bread (1 slice/28g)', unit:'serving', gramsPerUnit:28, kcal:110, protein:4, carbs:20, fat:1.5},
+  {name:'Sourdough Bread (1 slice/32g)', unit:'serving', gramsPerUnit:32, kcal:90, protein:3, carbs:18, fat:0.8},
+  {name:'Tortilla, corn (1 medium/45g)', unit:'serving', gramsPerUnit:45, kcal:96, protein:2.7, carbs:20.7, fat:1.2},
+  {name:'Tortilla, flour (1 medium/49g)', unit:'serving', gramsPerUnit:49, kcal:144, protein:4.3, carbs:24, fat:3.6},
+  {name:'Pasta, cooked (1 cup/140g)', unit:'serving', gramsPerUnit:140, kcal:221, protein:8, carbs:43, fat:1.3},
+  {name:'Sweet Potato, baked (100g)', unit:'g', gramsPerUnit:100, kcal:90, protein:2, carbs:21, fat:0.2},
+  {name:'Potato, baked (100g)', unit:'g', gramsPerUnit:100, kcal:93, protein:2.5, carbs:21, fat:0.1},
+  {name:'Bagel, plain (100g)', unit:'g', gramsPerUnit:100, kcal:250, protein:9, carbs:49, fat:1.2},
+  {name:'Cereal, corn flakes (30g)', unit:'g', gramsPerUnit:30, kcal:114, protein:2, carbs:26, fat:0.1},
+  {name:'Granola (50g)', unit:'g', gramsPerUnit:50, kcal:240, protein:5, carbs:32, fat:9},
+  {name:'Banana (118g)', unit:'g', gramsPerUnit:118, kcal:105, protein:1.3, carbs:27, fat:0.4},
+  {name:'Apple (182g)', unit:'g', gramsPerUnit:182, kcal:95, protein:0.5, carbs:25, fat:0.3},
+  {name:'Blueberries (100g)', unit:'g', gramsPerUnit:100, kcal:57, protein:0.7, carbs:14.5, fat:0.3},
+  {name:'Strawberries (100g)', unit:'g', gramsPerUnit:100, kcal:32, protein:0.7, carbs:7.7, fat:0.3},
+  {name:'Orange (131g)', unit:'g', gramsPerUnit:131, kcal:62, protein:1.2, carbs:15.4, fat:0.2},
+  {name:'Grapes (100g)', unit:'g', gramsPerUnit:100, kcal:69, protein:0.6, carbs:18, fat:0.2},
+  {name:'Pineapple (100g)', unit:'g', gramsPerUnit:100, kcal:50, protein:0.5, carbs:13, fat:0.1},
+  {name:'Avocado (100g)', unit:'g', gramsPerUnit:100, kcal:160, protein:2, carbs:8.5, fat:14.7},
+  {name:'Broccoli, steamed (100g)', unit:'g', gramsPerUnit:100, kcal:35, protein:2.4, carbs:7.2, fat:0.4},
+  {name:'Spinach, raw (100g)', unit:'g', gramsPerUnit:100, kcal:23, protein:2.9, carbs:3.6, fat:0.4},
+  {name:'Kale, raw (100g)', unit:'g', gramsPerUnit:100, kcal:49, protein:4.3, carbs:8.8, fat:0.9},
+  {name:'Carrots, raw (100g)', unit:'g', gramsPerUnit:100, kcal:41, protein:0.9, carbs:10, fat:0.2},
+  {name:'Tomato, raw (100g)', unit:'g', gramsPerUnit:100, kcal:18, protein:0.9, carbs:3.9, fat:0.2},
+  {name:'Cucumber, raw (100g)', unit:'g', gramsPerUnit:100, kcal:15, protein:0.7, carbs:3.6, fat:0.1},
+  {name:'Peppers, red (100g)', unit:'g', gramsPerUnit:100, kcal:31, protein:1, carbs:6, fat:0.3},
+  {name:'Mushrooms, white (100g)', unit:'g', gramsPerUnit:100, kcal:22, protein:3.1, carbs:3.3, fat:0.3},
+  {name:'Onion, raw (100g)', unit:'g', gramsPerUnit:100, kcal:40, protein:1.1, carbs:9.3, fat:0.1},
+  {name:'Milk, skim (240ml)', unit:'serving', gramsPerUnit:240, kcal:83, protein:8.3, carbs:12, fat:0.2},
+  {name:'Milk, 2% (240ml)', unit:'serving', gramsPerUnit:240, kcal:122, protein:8, carbs:12, fat:4.8},
+  {name:'Cheddar Cheese (28g)', unit:'g', gramsPerUnit:28, kcal:113, protein:7, carbs:0.4, fat:9.3},
+  {name:'Mozzarella, part-skim (28g)', unit:'g', gramsPerUnit:28, kcal:85, protein:6.3, carbs:0.7, fat:6.3},
+  {name:'Almond Milk, unsweetened (240ml)', unit:'serving', gramsPerUnit:240, kcal:30, protein:1, carbs:1, fat:2.5},
+  {name:'Oat Milk, unsweetened (240ml)', unit:'serving', gramsPerUnit:240, kcal:90, protein:2, carbs:16, fat:2},
+  {name:'Yogurt, plain whole (170g)', unit:'g', gramsPerUnit:170, kcal:106, protein:5.7, carbs:7.9, fat:5.3},
+  {name:'Olive Oil (1 tbsp/14g)', unit:'serving', gramsPerUnit:14, kcal:119, protein:0, carbs:0, fat:13.5},
+  {name:'Butter (1 tbsp/14g)', unit:'serving', gramsPerUnit:14, kcal:102, protein:0.1, carbs:0, fat:11.5},
+  {name:'Peanut Butter (32g)', unit:'g', gramsPerUnit:32, kcal:188, protein:8, carbs:6.3, fat:16},
+  {name:'Almond Butter (32g)', unit:'g', gramsPerUnit:32, kcal:196, protein:7, carbs:6.8, fat:18},
+  {name:'Avocado Oil (1 tbsp/14g)', unit:'serving', gramsPerUnit:14, kcal:120, protein:0, carbs:0, fat:14},
+  {name:'Mayonnaise (1 tbsp/13g)', unit:'serving', gramsPerUnit:13, kcal:94, protein:0, carbs:0.1, fat:10.3},
+  {name:'Almonds (28g)', unit:'g', gramsPerUnit:28, kcal:164, protein:6, carbs:6, fat:14},
+  {name:'Cashews (28g)', unit:'g', gramsPerUnit:28, kcal:157, protein:5, carbs:9, fat:12},
+  {name:'Walnuts (28g)', unit:'g', gramsPerUnit:28, kcal:185, protein:4.3, carbs:3.9, fat:18.5},
+  {name:'Trail Mix (28g)', unit:'g', gramsPerUnit:28, kcal:140, protein:4, carbs:15, fat:8},
+  {name:'Dark Chocolate 70% (30g)', unit:'g', gramsPerUnit:30, kcal:170, protein:2, carbs:13, fat:12},
+  {name:'Popcorn, air-popped (3 cups/24g)', unit:'serving', gramsPerUnit:24, kcal:93, protein:3, carbs:18.6, fat:1.1},
+  {name:'Protein Chips (28g)', unit:'g', gramsPerUnit:28, kcal:120, protein:15, carbs:5, fat:3},
+  {name:'Rice Cakes, plain (1 cake/9g)', unit:'serving', gramsPerUnit:9, kcal:35, protein:0.7, carbs:7.3, fat:0.3},
+  {name:'Ketchup (15g)', unit:'g', gramsPerUnit:15, kcal:17, protein:0.2, carbs:4.4, fat:0},
+  {name:'BBQ Sauce (15g)', unit:'g', gramsPerUnit:15, kcal:29, protein:0, carbs:7.5, fat:0},
+  {name:'Hot Sauce (5g)', unit:'g', gramsPerUnit:5, kcal:0, protein:0, carbs:0, fat:0},
+  {name:'Soy Sauce (15g)', unit:'g', gramsPerUnit:15, kcal:9, protein:1.3, carbs:0.8, fat:0},
+  {name:'Hummus (2 tbsp/30g)', unit:'g', gramsPerUnit:30, kcal:70, protein:2, carbs:4, fat:5},
+  {name:'Guacamole (30g)', unit:'g', gramsPerUnit:30, kcal:45, protein:0.6, carbs:3, fat:3.7},
+  {name:'Salsa (30g)', unit:'g', gramsPerUnit:30, kcal:10, protein:0.4, carbs:2.4, fat:0.1},
+  {name:'Egg Omelet (2 eggs, 100g)', unit:'g', gramsPerUnit:100, kcal:154, protein:12, carbs:1.6, fat:11},
+  {name:'Turkey Bacon (2 slices/16g)', unit:'serving', gramsPerUnit:16, kcal:70, protein:6, carbs:1, fat:4},
+  {name:'Pork Bacon (2 slices/16g)', unit:'serving', gramsPerUnit:16, kcal:87, protein:6, carbs:0.2, fat:7},
+  {name:'Pancakes, plain (100g)', unit:'g', gramsPerUnit:100, kcal:227, protein:6, carbs:28, fat:10},
+  {name:'Maple Syrup (1 tbsp/20g)', unit:'serving', gramsPerUnit:20, kcal:52, protein:0, carbs:13.4, fat:0},
+  {name:'Honey (1 tbsp/21g)', unit:'serving', gramsPerUnit:21, kcal:64, protein:0, carbs:17, fat:0},
+  {name:'Jam (1 tbsp/20g)', unit:'serving', gramsPerUnit:20, kcal:56, protein:0, carbs:14, fat:0},
+  {name:'Coffee, black (240ml)', unit:'serving', gramsPerUnit:240, kcal:2, protein:0.3, carbs:0, fat:0},
+  {name:'Latte with whole milk (355ml)', unit:'serving', gramsPerUnit:355, kcal:223, protein:12, carbs:18, fat:11},
+  {name:'Latte with skim milk (355ml)', unit:'serving', gramsPerUnit:355, kcal:130, protein:12, carbs:18, fat:0},
+  {name:'Orange Juice (240ml)', unit:'serving', gramsPerUnit:240, kcal:112, protein:1.7, carbs:25.8, fat:0.5},
+  {name:'Cola (355ml)', unit:'serving', gramsPerUnit:355, kcal:140, protein:0, carbs:39, fat:0},
+  {name:'Sports Drink (355ml)', unit:'serving', gramsPerUnit:355, kcal:80, protein:0, carbs:21, fat:0},
+  {name:'Grilled Chicken Sandwich (whole)', unit:'serving', gramsPerUnit:200, kcal:420, protein:35, carbs:45, fat:12},
+  {name:'Burrito, chicken (whole)', unit:'serving', gramsPerUnit:300, kcal:700, protein:35, carbs:80, fat:22},
+  {name:'Pizza, cheese (1 slice/107g)', unit:'serving', gramsPerUnit:107, kcal:285, protein:12, carbs:36, fat:10},
+  {name:'Sushi, salmon roll (6 pcs/200g)', unit:'serving', gramsPerUnit:200, kcal:300, protein:13, carbs:42, fat:9},
+  {name:'Poke Bowl, salmon (400g)', unit:'g', gramsPerUnit:400, kcal:650, protein:40, carbs:70, fat:20},
+  {name:'Caesar Salad with chicken (350g)', unit:'g', gramsPerUnit:350, kcal:520, protein:40, carbs:20, fat:30},
+  {name:'Protein Shake RTD (330ml)', unit:'serving', gramsPerUnit:330, kcal:160, protein:30, carbs:6, fat:3}
+];
+
+const foodSearch = document.getElementById('food-search');
+const foodResults = document.getElementById('food-results');
+const foodQty = document.getElementById('food-qty');
+const foodUnit = document.getElementById('food-unit');
+const todayFoodsEl = document.getElementById('today-foods');
+
+function searchFood(q){
+  q = q.toLowerCase();
+  const res = foodDB.filter(f=>f.name.toLowerCase().includes(q)).slice(0,15);
+  foodResults.innerHTML = res.map((f,i)=>`<div class="d-flex justify-content-between align-items-center border-bottom border-secondary py-1">
+    <div>${f.name} <span class="text-secondary small">(${f.kcal} kcal / ${f.gramsPerUnit}${f.unit})</span></div>
+    <button class="btn btn-sm btn-outline-brand" onclick="addFood(${i})">Add</button>
+  </div>`).join('');
+}
+foodSearch.addEventListener('input', ()=>searchFood(foodSearch.value));
+searchFood('');
+
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+
+window.addFood = function(i){
+  const f = foodDB[i];
+  const qty = Number(foodQty.value||1);
+  const unit = foodUnit.value;
+  let grams = f.gramsPerUnit * qty;
+  if(unit==='g'){ grams = qty; }
+  if(unit==='oz'){ grams = qty * 28.3495; }
+  const factor = grams / f.gramsPerUnit;
+  const entry = {
+    name: f.name, qty, unit,
+    kcal: +(f.kcal*factor).toFixed(0),
+    protein: +(f.protein*factor).toFixed(1),
+    carbs: +(f.carbs*factor).toFixed(1),
+    fat: +(f.fat*factor).toFixed(1)
+  };
+  const k = todayKey();
+  state.foodsByDate[k] = state.foodsByDate[k]||[];
+  state.foodsByDate[k].push(entry);
+  persist(); renderTodayFoods(); renderMacro(); renderDashboards();
+};
+
+function renderTodayFoods(){
+  const k = todayKey();
+  const arr = state.foodsByDate[k]||[];
+  if(!arr.length){ todayFoodsEl.innerHTML = '<div class="text-secondary">No foods logged yet.</div>'; return; }
+  todayFoodsEl.innerHTML = arr.map((f,idx)=>`<div class="d-flex justify-content-between border-bottom border-secondary py-1">
+    <div>${f.name} <span class="text-secondary small">x${f.qty} ${f.unit}</span></div>
+    <div>${f.kcal} kcal | P ${f.protein} • C ${f.carbs} • F ${f.fat}
+      <button class="btn btn-sm btn-link" title="Favorite" onclick="toggleFavFood('${'${'}f.name.replaceAll('"','&quot;'){'}'}')">★</button>
+      <button class="btn btn-sm btn-link text-danger" onclick="deleteFood(${idx})">✕</button>
+    </div>
+  </div>`).join('');
+}
+window.deleteFood = function(idx){
+  const k = todayKey();
+  state.foodsByDate[k].splice(idx,1);
+  persist(); renderTodayFoods(); renderMacro(); renderDashboards();
+};
+
+let macroChart = null;
+function renderMacro(){
+  const k = todayKey();
+  const arr = state.foodsByDate[k]||[];
+  const totals = arr.reduce((acc,f)=>({
+    kcal: acc.kcal + f.kcal,
+    protein: acc.protein + f.protein,
+    carbs: acc.carbs + f.carbs,
+    fat: acc.fat + f.fat
+  }), {kcal:0, protein:0, carbs:0, fat:0});
+  const g = state.goals;
+  const ctx = document.getElementById('macroChart');
+  const data = {
+    labels:['Protein','Carbs','Fat'],
+    datasets:[
+      { label:'Today', data:[totals.protein, totals.carbs, totals.fat] },
+      { label:'Goal', data:[g.protein, g.carbs, g.fat] }
+    ]
+  };
+  if(macroChart) macroChart.destroy();
+  macroChart = new Chart(ctx, { type:'radar', data, options:{ scales:{ r:{ beginAtZero:true }}}});
+}
+renderTodayFoods(); renderMacro();
+
+const codeReader = new ZXingBrowser.BrowserMultiFormatReader();
+document.getElementById('open-scanner').addEventListener('click', async ()=>{
+  const video = document.getElementById('preview');
+  video.style.display = 'block';
+  try {
+    const controls = await codeReader.decodeFromVideoDevice(null, video, (result, err)=>{
+      if(result){
+        controls.stop();
+        video.style.display = 'none';
+        lookupBarcode(result.getText());
+      }
+    });
+  } catch(e){
+    alert('Camera error: ' + e.message);
+    video.style.display = 'none';
+  }
+});
+async function lookupBarcode(code){
+  try{
+    const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+    const data = await res.json();
+    if(data.status !== 1){ alert('Product not found. Try again.'); return; }
+    const p = data.product;
+    const name = p.product_name || 'Scanned Product';
+    const nutr = p.nutriments || {};
+    const kcal = nutr['energy-kcal_100g'] ?? (nutr['energy_100g']? nutr['energy_100g']*0.239006 : 0);
+    const protein = nutr['proteins_100g'] || 0;
+    const carbs = nutr['carbohydrates_100g'] || 0;
+    const fat = nutr['fat_100g'] || 0;
+    foodDB.unshift({ name: `${name} (per 100g)`, unit:'g', gramsPerUnit:100, kcal: Math.round(kcal||0), protein, carbs, fat });
+    foodSearch.value = name;
+    searchFood(name);
+  }catch(e){
+    alert('Lookup failed. Check connection.');
+  }
+}
+
+let groupChart=null, calChart=null;
+function renderDashboards(){
+  const map = {};
+  state.workouts.forEach(w=>{
+    const d = new Date(w.date).toISOString().slice(0,10);
+    map[d] = map[d] || {};
+    w.exercises.forEach(ex=>{
+      const tonnage = ex.sets.reduce((acc,s)=> acc + (Number(s.weight)||0)*(Number(s.reps)||0),0);
+      map[d][ex.group] = (map[d][ex.group]||0) + tonnage;
+    });
+  });
+  const labels = Object.keys(map).sort();
+  const groups = ['Chest','Back','Legs','Glutes','Shoulders','Biceps','Triceps','Core'];
+  const datasets = groups.map(g=>({ label:g, data: labels.map(d=> map[d][g]||0), tension:.2 }));
+  const ctx1 = document.getElementById('groupChart');
+  if(groupChart) groupChart.destroy();
+  groupChart = new Chart(ctx1, { type:'line', data:{ labels, datasets }, options:{ scales:{ y:{ beginAtZero:true }}}});
+
+  const foodMap = {};
+  Object.entries(state.foodsByDate).forEach(([d, arr])=>{
+    foodMap[d] = arr.reduce((t,f)=>t+f.kcal,0);
+  });
+  const days = Object.keys(foodMap).sort();
+  const ctx2 = document.getElementById('calChart');
+  if(calChart) calChart.destroy();
+  calChart = new Chart(ctx2, { type:'bar', data:{ labels: days, datasets:[{ label:'Calories', data: days.map(d=>foodMap[d]||0)}] }, options:{ scales:{ y:{ beginAtZero:true }}}});
+}
+renderCardioChart();
+updateExerciseChart();
+
+// Register Service Worker (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<nav class="tabbar">
+  <button class="active" data-section="home"><span class="icon">🏠</span>Home</button>
+  <button data-section="plan"><span class="icon">🗓️</span>Plan</button>
+  <button data-section="strength"><span class="icon">🏋️</span>Strength</button>
+  <button data-section="exercises"><span class="icon">🧭</span>Exercises</button>
+  <button data-section="nutrition"><span class="icon">🍽️</span>Nutrition</button>
+  <button data-section="dash"><span class="icon">📊</span>Progress</button>
+  <button data-section="coach"><span class="icon">🤖</span>Coach</button>
+</nav>
+
+
+<script>
+  // Tab bar switching
+  const sections = {
+    home: document.getElementById('section-home'),
+    plan: document.getElementById('section-plan'),
+    strength: document.getElementById('section-strength'),
+    nutrition: document.getElementById('section-nutrition'),
+    dash: document.getElementById('section-dash'),
+    coach: document.getElementById('section-coach')
+  };
+  function showSection(k){
+    Object.entries(sections).forEach(([key,el])=>{ if(el) el.style.display = (key===k)?'block':'none'; });
+    document.querySelectorAll('.tabbar button').forEach(b=> b.classList.toggle('active', b.dataset.section===k));
+    if(k==='home' && window.renderHero) { renderHero(); if(window.renderMuscleHeatmap) renderMuscleHeatmap(); if(window.renderCalendar) renderCalendar(); }
+    if(k==='dash' && window.renderDashboards) renderDashboards();
+  }
+  document.querySelectorAll('.tabbar button').forEach(btn=>{
+    btn.addEventListener('click', ()=> showSection(btn.dataset.section));
+  });
+  // initial
+  showSection('home');
+</script>
+
+
+<div class="modal fade" id="readinessModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:#141935; border:1px solid #2a2f55;">
+      <div class="modal-header">
+        <h5 class="modal-title">Readiness — Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2"><strong>Score:</strong> <span id="rd-score">--</span> <span id="rd-label" class="badge-soft"></span></div>
+        <div class="mb-2"><strong>Activity balance (14d vs 60d):</strong> <span id="rd-balance">--</span></div>
+        <div class="mb-2"><strong>Strength tonnage last 7d:</strong> <span id="rd-tonnage">--</span></div>
+        <div class="mb-2"><strong>Cardio minutes last 7d:</strong> <span id="rd-cardio">--</span></div>
+        <div class="mb-2"><strong>Avg calories last 7d vs goal:</strong> <span id="rd-cal-avg">--</span></div>
+        <div class="text-secondary small">Note: Sleep/HRV integrations coming later. Score is based on training volume and nutrition consistency.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-brand" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function computeTotalsForDay(key){
+  const arr = state.foodsByDate[key]||[];
+  return arr.reduce((a,f)=>({kcal:a.kcal+f.kcal, protein:a.protein+f.protein, carbs:a.carbs+f.carbs, fat:a.fat+f.fat}), {kcal:0, protein:0, carbs:0, fat:0});
+}
+function lastNDays(n){
+  const days=[]; const d=new Date();
+  for(let i=0;i<n;i++){ const t=new Date(d); t.setDate(d.getDate()-i); days.push(t); }
+  return days;
+}
+function sumStrengthTonnage(from,to){
+  let v=0;
+  state.workouts.filter(w=> new Date(w.date)>=from && new Date(w.date)<=to)
+    .forEach(w=> w.exercises.forEach(ex=> v += (ex.sets||[]).reduce((a,s)=>a+(+s.weight||0)*(+s.reps||0),0)));
+  return v;
+}
+function sumCardioMinutes(from,to){
+  let v=0;
+  state.cardio.filter(c=> new Date(c.date)>=from && new Date(c.date)<=to)
+    .forEach(c=> v += (+c.duration||0));
+  return v;
+}
+function readinessScoreVerbose(){
+  const now = new Date();
+  const d14 = new Date(now); d14.setDate(now.getDate()-14);
+  const d60 = new Date(now); d60.setDate(now.getDate()-60);
+  const last14 = sumStrengthTonnage(d14, now) + sumCardioMinutes(d14, now)*100;
+  const base60 = (sumStrengthTonnage(d60, now) + sumCardioMinutes(d60, now)*100)/60*14 || 1;
+  const ratio = last14/base60;
+  let score = 85 - Math.abs(ratio-1)*50;
+  score = Math.max(20, Math.min(95, Math.round(score)));
+  let label = 'Balanced'; let colorClass='readiness-green';
+  if(ratio>1.2){ label='High load'; colorClass='readiness-red'; }
+  else if(ratio<0.8){ label='Low load'; colorClass='readiness-yellow'; }
+  const note = ratio>1.2 ? 'High load — consider easier day.' : (ratio<0.8 ? 'Low load — you can push.' : 'Balanced — proceed as planned.');
+  return {score, ratio, label, colorClass, note};
+}
+function nutritionAvgVsGoal(days=7){
+  const g = state.goals;
+  const target = Math.round(g.protein*4 + g.carbs*4 + g.fat*9) || 0;
+  const ds = lastNDays(days);
+  let sum=0;
+  ds.forEach(d=>{ const k=d.toISOString().slice(0,10); const t=computeTotalsForDay(k); sum+=t.kcal; });
+  const avg = Math.round(sum/days);
+  const pct = target? Math.round(avg/target*100) : 0;
+  return {avg, target, pct};
+}
+function computeStreak(type){
+  let s=0;
+  for(let i=0;i<60;i++){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const ok = type==='workout'
+      ? (state.workouts.some(w=> w.date.slice(0,10)===key) || state.cardio.some(c=> c.date.slice(0,10)===key))
+      : ((state.foodsByDate[key]||[]).length>0);
+    if(ok) s++; else break;
+  }
+  return s;
+}
+function renderCoachCard(){
+  const k = new Date().toISOString().slice(0,10);
+  const totals = computeTotalsForDay(k);
+  const g = state.goals;
+  document.getElementById('coach-kcal').textContent = Math.round(totals.kcal);
+  document.getElementById('coach-kcal-goal').textContent = Math.round(g.protein*4 + g.carbs*4 + g.fat*9);
+  document.getElementById('coach-pro').textContent = Math.round(totals.protein);
+  document.getElementById('coach-pro-goal').textContent = g.protein;
+  const trainMin = (state.workouts.filter(w=> w.date.slice(0,10)===k).reduce((a,w)=> a + (w.exercises||[]).reduce((aa,ex)=> aa + (ex.sets||[]).length, 0), 0)) + (state.cardio.filter(c=> c.date.slice(0,10)===k).reduce((a,c)=> a + (+c.duration||0), 0));
+  document.getElementById('coach-trn').textContent = trainMin;
+  const readiness = readinessScoreVerbose();
+  document.getElementById('coach-score').textContent = readiness.score;
+  document.getElementById('coach-state').textContent = readiness.label;
+  document.getElementById('coach-state').className = 'small ' + readiness.colorClass;
+  const wS = computeStreak('workout'), fS = computeStreak('food');
+  document.getElementById('coach-streak-w').textContent = wS;
+  document.getElementById('coach-streak-f').textContent = fS;
+  // Message
+  let msg = readiness.note + ' ';
+  if(readiness.label==='Low load') msg += 'Plan: hard day or longer cardio.';
+  else if(readiness.label==='Balanced') msg += 'Plan: follow your program as written.';
+  else msg += 'Plan: deload or technique work.';
+  document.getElementById('coach-msg').textContent = msg;
+}
+function openReadinessDetails(){
+  const r = readinessScoreVerbose();
+  document.getElementById('rd-score').textContent = r.score;
+  document.getElementById('rd-label').textContent = r.label;
+  document.getElementById('rd-label').className = 'badge-soft ' + r.colorClass;
+  document.getElementById('rd-balance').textContent = (r.ratio).toFixed(2) + '× of baseline';
+  const now=new Date(); const wkAgo = new Date(); wkAgo.setDate(now.getDate()-7);
+  document.getElementById('rd-tonnage').textContent = Math.round(sumStrengthTonnage(wkAgo, now));
+  document.getElementById('rd-cardio').textContent = Math.round(sumCardioMinutes(wkAgo, now)) + ' min';
+  const nv = nutritionAvgVsGoal(7);
+  document.getElementById('rd-cal-avg').textContent = nv.avg + ' / ' + nv.target + ' (' + nv.pct + '%)';
+  // Open modal (Bootstrap or fallback)
+  if (window.bootstrap && bootstrap.Modal){
+    const modal = new bootstrap.Modal(document.getElementById('readinessModal'));
+    modal.show();
+  } else {
+    document.getElementById('readinessModal').style.display='block';
+  }
+}
+document.getElementById('coach-details-btn').addEventListener('click', openReadinessDetails);
+
+// Render on home entry
+document.querySelector('[data-section=\"home\"]').addEventListener('click', renderCoachCard);
+renderCoachCard();
+</script>
+
+
+<div class="modal fade" id="startWorkoutModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen-md-down">
+    <div class="modal-content" style="background:#141a2e;border:1px solid #2a2f55;">
+      <div class="modal-header">
+        <div>
+          <div class="small text-secondary">Planned Workout</div>
+          <h5 class="modal-title" id="sw-title">Workout</h5>
+          <div class="small" id="sw-summary">-- exercises • -- min • ~-- kcal</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="sw-muscles" class="mb-2"></div>
+        <div id="sw-list"></div>
+      </div>
+      <div class="modal-footer" style="justify-content:space-between">
+        <div class="small text-secondary" id="sw-note">Shows last logged set under each move.</div>
+        <button class="btn btn-brand" id="sw-start">START WORKOUT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ---------- Exercises Browser ----------
+function buildModelClickable(){
+  const groups = ['Chest','Back','Legs','Glutes','Shoulders','Biceps','Triceps','Core'];
+  const neutral = (g)=> '#222';
+  const colors = {}; groups.forEach(g=>colors[g]=neutral(g));
+  const svg = muscleSVG(colors, colors).replaceAll('<title>', '<title data-tip="1">'); // reuse our SVG
+  const wrap = document.getElementById('ex-model');
+  if(!wrap) return;
+  wrap.innerHTML = svg;
+  // Add click handlers by rough bbox via ids (we didn't have ids; use event delegation on title text)
+  wrap.querySelectorAll('title').forEach(t=>{
+    const text = t.textContent || '';
+    const g = text.replace('Left ','').replace('Right ','').replace(' (upper)','').split(' ')[0]; // crude mapping
+    const parent = t.parentElement;
+    parent.style.cursor = 'pointer';
+    parent.addEventListener('click', ()=>{ renderExerciseList({group:g}); });
+  });
+  // Chips
+  document.querySelectorAll('#ex-chips .chip').forEach(ch=>{
+    ch.style.cursor='pointer'; ch.addEventListener('click', ()=> renderExerciseList({group: ch.textContent.trim()}));
+  });
+  // Search & type
+  document.getElementById('ex-search').addEventListener('input', ()=> renderExerciseList({}));
+  document.getElementById('ex-type').addEventListener('change', ()=> renderExerciseList({}));
+}
+
+function exerciseCatalog(){
+  // Use our strength exercise list + a few cardio/mobility; dedupe by name
+  const exs = [];
+  (window.strengthExercises||[]).forEach(e=> exs.push({name:e.name, group:e.group, type:'Strength', equipment:e.equipment||'Any'}));
+  exs.push({name:'Running', group:'Legs', type:'Cardio', equipment:'Shoes'});
+  exs.push({name:'Cycling', group:'Legs', type:'Cardio', equipment:'Bike'});
+  exs.push({name:'Rowing', group:'Back', type:'Cardio', equipment:'Rower'});
+  exs.push({name:'Downward Dog', group:'Shoulders', type:'Yoga/Pilates', equipment:'Mat'});
+  exs.push({name:'Glute Bridge', group:'Glutes', type:'Mobility', equipment:'Mat'});
+  // Dedup
+  const map = new Map(); exs.forEach(x=> map.set(x.name, x));
+  return Array.from(map.values());
+}
+
+function renderExerciseList(filter){
+  const list = exerciseCatalog();
+  const q = document.getElementById('ex-search').value.trim().toLowerCase();
+  const typ = document.getElementById('ex-type').value;
+  const group = filter.group;
+  const out = list.filter(x=> (!q || x.name.toLowerCase().includes(q)) && (!typ || x.type===typ) && (!group || x.group===group));
+  const box = document.getElementById('ex-list');
+  if(!out.length){ box.innerHTML = '<div class="text-secondary">No matches.</div>'; return; }
+  box.innerHTML = out.map(x=>{
+    const hist = getExerciseHistory(x.name);
+    const last = hist.length ? `Last: ${hist[0].date} [${hist[0].sets.join(', ')}]` : 'No history';
+    const yt = (state.media && state.media[x.name] && state.media[x.name].yt) || '';
+    const th = yt ? ytThumb(yt) : '';
+    return `<div class=\"row\" style=\"gap:10px\">
+      <div class=\"ex-thumb\">${th?`<img src=\"${'${'}th{'}'}\">`:'<div class=\"small text-secondary\" style=\"display:flex;align-items:center;justify-content:center;height:100%\">No img</div>'}</div>
+      <div style=\"flex:1\">
+        <div><strong>${x.name}</strong> <span class=\"badge-soft\">${x.group}</span> <span class=\"badge-soft\">${x.type}</span></div>
+        <div class=\"small text-secondary\">${x.equipment}</div>
+        <div class=\"small\">${last}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+(function initExercises(){
+  const exTab = document.querySelector('.tabbar button[data-section="exercises"]');
+  if(exTab){
+    exTab.addEventListener('click', ()=>{ buildModelClickable(); renderExerciseList({}); });
+  }
+})();
+
+// ---------- Today's Workouts list with START buttons ----------
+function renderTodayWorkouts(){
+  const key = new Date().toISOString().slice(0,10);
+  const todays = state.workouts.filter(w=> w.date.slice(0,10)===key);
+  const box = document.getElementById('today-workouts-list'); if(!box) return;
+  if(!todays.length){ box.innerHTML = '<div class="text-secondary">No strength workouts scheduled today.</div>'; return; }
+  box.innerHTML = todays.map((w,idx)=>{
+    const groups = [...new Set((w.exercises||[]).map(e=>e.group))].join('/');
+    const sets = (w.exercises||[]).reduce((a,e)=> a + (e.sets||[]).length, 0);
+    const timeMin = Math.max(15, Math.round(sets*2)); // ~2 min per set
+    return `<div class="row">
+      <div><strong>${w.programLabel||'Strength'}</strong> <span class="badge-soft">${groups||'-'}</span></div>
+      <div class="small text-secondary">${(w.exercises||[]).length} exercises • ~${timeMin} min</div>
+      <div><button class="btn btn-outline-brand btn-sm" onclick="openStartScreen(${idx})">Open</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- Start Screen ----------
+function openStartScreen(idx){
+  const key = new Date().toISOString().slice(0,10);
+  const todays = state.workouts.filter(w=> w.date.slice(0,10)===key);
+  const w = todays[idx]; if(!w) return;
+  document.getElementById('sw-title').textContent = w.programLabel || 'Strength';
+  const sets = (w.exercises||[]).reduce((a,e)=> a + (e.sets||[]).length, 0);
+  const timeMin = Math.max(15, Math.round(sets*2));
+  const kcal = Math.round(timeMin * 6); // rough placeholder
+  document.getElementById('sw-summary').textContent = `${(w.exercises||[]).length} exercises • ~${timeMin} min • ~${kcal} kcal`;
+  // Muscles summary
+  const groups = [...new Set((w.exercises||[]).map(e=>e.group))];
+  document.getElementById('sw-muscles').innerHTML = groups.map(g=> `<span class="chip">${g}</span>`).join(' ');
+  // List
+  const list = document.getElementById('sw-list');
+  list.innerHTML = (w.exercises||[]).map((ex,i)=>{
+    const hist = getExerciseHistory(ex.name);
+    const last = hist.length ? `<div class=\"small text-secondary\">Last: ${hist[0].date} • ${hist[0].sets.join(', ')}\u003c/div>` : '<div class=\"small text-secondary\">No history</div>';
+    const sr = (ex.sets||[]).map(s=> `${s.reps||'—'} reps`).join(' · ');
+    const yt = (state.media && state.media[ex.name] && state.media[ex.name].yt) || null;
+    const warmups = suggestWarmups(ex.name);
+    const warmHtml = warmups.length ? `<div class=\"small\"><span class=\"badge-soft\">Warm-Up</span> ${warmups.map(s=>`${s.weight}x${s.reps}`).join(' • ')}</div>` : '';
+    return `<div class=\"mb-2 p-2 round\" style=\"border:1px solid var(--border)\">
+      <div class=\"ex-tile\">
+        <div class=\"ex-thumb\">${yt?`<img src=\"${'${'}ytThumb(yt){'}'}\" alt=\"thumb\" onclick=\"openVideoFor('${'${'}ex.name.replaceAll('"','&quot;'){'}'}')\">`:'<div class=\"small text-secondary\" style=\"display:flex;align-items:center;justify-content:center;height:100%\">No img</div>'}</div>
+        <div style=\"flex:1\">
+          <div class=\"d-flex justify-content-between\">
+            <div><strong>${ex.name}</strong> <span class=\"badge-soft\">${ex.group}</span>${ex.superset?` <span class=\"badge-soft\">Superset ${ex.superset}</span>`:''}</div>
+            <div class=\"small\">${sr||''}</div>
+          </div>
+          ${last}
+          ${warmHtml}
+          <div class=\"ex-actions mt-1\">
+            ${yt?`<button class=\"btn btn-outline-brand btn-sm\" onclick=\"openVideoFor('${'${'}ex.name.replaceAll('"','&quot;'){'}'}')\">Demo</button>`:''}
+            <button class=\"btn btn-outline-brand btn-sm\" onclick=\"openSwap(${i})\">Swap</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  // Wire START: move workout exercises into current session and jump to Strength tab
+  document.getElementById('sw-start').onclick = ()=>{
+    currentSession = { date: new Date().toISOString(), exercises: (w.exercises||[]).map(ex=> ({name:ex.name, group:ex.group, superset:ex.superset||'', sets:[]})) };
+    // show Strength section and close modal
+    document.querySelector('.tabbar button[data-section="strength"]').click();
+    if(window.bootstrap && bootstrap.Modal){ bootstrap.Modal.getInstance(document.getElementById('startWorkoutModal'))?.hide(); }
+    // Render set logger
+    if(window.renderSelected) renderSelected();
+  };
+  // Open modal
+  if(window.bootstrap && bootstrap.Modal){
+    const modal = new bootstrap.Modal(document.getElementById('startWorkoutModal')); modal.show();
+  }else{
+    document.getElementById('startWorkoutModal').style.display='block';
+  }
+}
+
+// Hook Plan tab to refresh today's list
+(function(){
+  const planBtn = document.querySelector('.tabbar button[data-section="plan"]');
+  if(planBtn){ planBtn.addEventListener('click', renderTodayWorkouts); }
+  // also render on first load
+  renderTodayWorkouts();
+})();
+</script>
+
+
+<div class="lightbox" id="videoLightbox">
+  <div class="lightbox-inner">
+    <div class="lightbox-header">
+      <div class="small">Exercise Demo</div>
+      <button class="btn btn-outline-brand btn-sm" id="lb-close">Close</button>
+    </div>
+    <div class="lightbox-body">
+      <iframe id="lb-iframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function ytThumb(id){ return `https://img.youtube.com/vi/${id}/hqdefault.jpg`; }
+function ytEmbed(id){ return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&modestbranding=1&rel=0`; }
+function openVideoFor(exName){
+  const m = state.media && state.media[exName];
+  if(!m || !m.yt){ alert('No demo video found.'); return; }
+  const lb = document.getElementById('videoLightbox'); const fr = document.getElementById('lb-iframe');
+  fr.src = ytEmbed(m.yt); lb.style.display='flex';
+}
+document.getElementById('lb-close').addEventListener('click', ()=>{
+  const lb = document.getElementById('videoLightbox'); const fr = document.getElementById('lb-iframe');
+  fr.src=''; lb.style.display='none';
+});
+
+// Warm-up suggestion based on last top weight
+function suggestWarmups(exName){
+  const last = lastTopWeight(exName);
+  const p = (state.prefs?.warmup?.percent ?? 45)/100;
+  const reps = state.prefs?.warmup?.reps ?? 12;
+  if(last==null || last===0){ return []; }
+  // 1–2 warm-ups depending on load
+  const w1 = Math.max(1, Math.round(last * p / (state.settings.units==='kg'?1:2.5)) * (state.settings.units==='kg'?1:2.5));
+  const sets = [{weight: w1, reps: reps, note:'warm-up'}];
+  if(last >= (state.settings.units==='kg'?60:135)){
+    const w2 = Math.max(1, Math.round(last * (p+0.15) / (state.settings.units==='kg'?1:2.5)) * (state.settings.units==='kg'?1:2.5));
+    sets.unshift({weight: w2, reps: Math.max(8, reps-2), note:'warm-up'});
+  }
+  return sets;
+}
+
+// Save warm-up prefs
+function saveWarmupPrefs(percent, reps){
+  state.prefs = state.prefs || {warmup:{percent:45,reps:12}, swaps:{}};
+  state.prefs.warmup = {percent, reps}; persist();
+}
+
+// Swap pref: remember preferred replacement for exercise
+function rememberSwap(original, replacement){
+  state.prefs = state.prefs || {warmup:{percent:45,reps:12}, swaps:{}};
+  state.prefs.swaps[original] = replacement; persist();
+}
+</script>
+
+
+<script>
+function swapCandidates(group, excludeName){
+  // Build from catalog; prefer same group
+  const list = exerciseCatalog().filter(x=> x.group===group && x.name!==excludeName);
+  // if prefs has a remembered swap, put it first
+  const pref = state.prefs?.swaps?.[excludeName];
+  if(pref){
+    const idx = list.findIndex(x=> x.name===pref);
+    if(idx>0){ const p = list.splice(idx,1)[0]; list.unshift(p); }
+  }
+  return list;
+}
+function openSwap(exIdx){
+  const key = new Date().toISOString().slice(0,10);
+  const todays = state.workouts.filter(w=> w.date.slice(0,10)===key);
+  if(!todays.length) return;
+  const w = todays[0]; // modal always opened per workout; using first for simplicity
+  const target = w.exercises[exIdx];
+  const list = swapCandidates(target.group, target.name);
+  const box = document.createElement('div');
+  box.className = 'swap-picker';
+  box.innerHTML = list.map(c=>{
+    const yt = (state.media && state.media[c.name] && state.media[c.name].yt) || '';
+    const th = yt ? ytThumb(yt) : '';
+    return `<div class="swap-row">
+      <div class="ex-thumb">${th?`<img src="${th}">`:'<div class="small text-secondary" style="display:flex;align-items:center;justify-content:center;height:100%">No img</div>'}</div>
+      <div style="flex:1">
+        <div><strong>${c.name}</strong> <span class="badge-soft">${c.group}</span></div>
+        <div class="small text-secondary">${c.type} • ${c.equipment}</div>
+      </div>
+      <div><button class="btn btn-brand btn-sm" data-name="${c.name}">Use</button></div>
+    </div>`;
+  }).join('');
+  // Show as lightweight popover replacement: insert under the Start modal header
+  const container = document.querySelector('#startWorkoutModal .modal-body');
+  const old = document.getElementById('swap-box'); if(old) old.remove();
+  box.id = 'swap-box';
+  container.prepend(box);
+  box.querySelectorAll('button[data-name]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const replacement = btn.getAttribute('data-name');
+      rememberSwap(target.name, replacement);
+      // replace in today's workout
+      const repMeta = exerciseCatalog().find(x=> x.name===replacement);
+      target.name = replacement; target.group = repMeta?.group || target.group;
+      // re-render list
+      openStartScreen( todays.indexOf(w) );
+      // scroll to this exercise tile after re-render
+      setTimeout(()=>{
+        const tiles = Array.from(document.querySelectorAll('#sw-list .ex-tile'));
+        if(tiles[exIdx]) tiles[exIdx].scrollIntoView({behavior:'smooth', block:'center'});
+      }, 50);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
