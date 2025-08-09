@@ -1758,5 +1758,54 @@ function openSwap(exIdx){
 }
 </script>
 
+<style>
+  #ff-error{position:fixed;left:8px;right:8px;bottom:82px;z-index:9999;display:none;background:#2a1333;color:#ffd1d1;border:1px solid #663;padding:8px;border-radius:10px}
+</style>
+<div id="ff-error"></div>
+<script>
+  window.addEventListener('error', function(e){
+    var b=document.getElementById('ff-error');
+    if(!b) return;
+    b.style.display='block';
+    b.textContent='⚠️ App script error: ' + (e.message||'Check console');
+    setTimeout(()=>{ b.style.display='none'; }, 8000);
+  });
+</script>
+
+<script>
+// Minimal modal shim if Bootstrap isn't present
+(function(){
+  if (window.bootstrap) return;
+  function show(id){ var el=document.getElementById(id); if(!el) return; el.style.display='block'; el.style.position='fixed'; el.style.inset='10%'; el.style.zIndex=2000; el.style.overflow='auto'; }
+  function hide(id){ var el=document.getElementById(id); if(!el) return; el.style.display='none'; }
+  window.openModal = function(id){ show(id); };
+  window.closeModal = function(id){ hide(id); };
+  document.addEventListener('click', (e)=>{
+    var t=e.target; if(t && t.getAttribute && t.getAttribute('data-bs-dismiss')==='modal'){
+      var m=t.closest('.modal'); if(m) m.style.display='none';
+    }
+  });
+})();
+</script>
+
+<script>
+// Safe Boot Sequence (GitHub Pages)
+(function(){
+  function safe(fn){ try{ typeof fn==='function' && fn(); }catch(e){ console.error(e); } }
+  function boot(){
+    if (typeof showSection==='function') safe(()=>showSection('home'));
+    safe(window.renderHero);
+    safe(window.renderMuscleHeatmap);
+    safe(window.renderCalendar);
+    safe(window.renderTodayWorkouts);
+    safe(window.renderDashboards);
+    safe(window.renderCoachCard);
+  }
+  if(document.readyState==='complete' || document.readyState==='interactive'){ setTimeout(boot, 0); }
+  else { document.addEventListener('DOMContentLoaded', boot); }
+})();
+</script>
+
+      
 </body>
 </html>
